@@ -1,223 +1,213 @@
-const form = document.getElementById("chat-form");
-const input = document.getElementById("user-input");
-const chatBox = document.getElementById("chat-box");
-const newChat = document.getElementById("new-chat");
+document.addEventListener("DOMContentLoaded", () => {
 
-let conversation = [];
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("user-input");
+    const chatBox = document.getElementById("chat-box");
+    const newChatBtn = document.getElementById("new-chat");
 
-// =========================
-// Scroll ke bawah
-// =========================
+    let conversation = [];
 
-function scrollBottom() {
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// =========================
-// Bubble Chat
-// =========================
-
-function createMessage(role, text) {
-
-    // hilangkan welcome pertama
-    const welcome = document.querySelector(".welcome");
-
-    if (welcome) {
-        welcome.remove();
+    // ================================
+    // Scroll otomatis
+    // ================================
+    function scrollBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    const message = document.createElement("div");
-    message.className = `message ${role}`;
+    // ================================
+    // Membuat Bubble Chat
+    // ================================
+    function createMessage(role, text) {
 
-    const avatar = document.createElement("div");
-    avatar.className = "avatar";
+        const message = document.createElement("div");
+        message.className = `message ${role}`;
 
-    avatar.innerHTML = role === "user"
-        ? "👤"
-        : "🤖";
+        const icon = document.createElement("div");
+        icon.className = "icon";
 
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
+        icon.textContent = role === "user"
+            ? "👤"
+            : "🤖";
 
-    bubble.innerHTML = text.replace(/\n/g, "<br>");
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
 
-    message.appendChild(avatar);
-    message.appendChild(bubble);
+        bubble.innerHTML = `
+            <h4>${role === "user" ? "You" : "AI Assistant"}</h4>
+            <p>${text}</p>
+        `;
 
-    chatBox.appendChild(message);
+        message.appendChild(icon);
+        message.appendChild(bubble);
 
-    scrollBottom();
+        chatBox.appendChild(message);
 
-    return message;
-}
+        scrollBottom();
 
-// =========================
-// Loading
-// =========================
+        return message;
 
-function createLoading() {
+    }
 
-    const message = document.createElement("div");
+    // ================================
+    // Loading Animation
+    // ================================
+    function createLoading() {
 
-    message.className = "message bot";
+        const loading = document.createElement("div");
+        loading.className = "message bot";
 
-    message.innerHTML = `
-        <div class="avatar">🤖</div>
+        loading.innerHTML = `
+            <div class="icon">🤖</div>
 
-        <div class="bubble">
+            <div class="bubble">
 
-            <div class="typing">
+                <h4>AI Assistant</h4>
 
-                <span></span>
-                <span></span>
-                <span></span>
+                <div class="loading">
+
+                    <div></div>
+                    <div></div>
+                    <div></div>
+
+                </div>
 
             </div>
+        `;
 
-        </div>
-    `;
+        chatBox.appendChild(loading);
 
-    chatBox.appendChild(message);
+        scrollBottom();
 
-    scrollBottom();
+        return loading;
 
-    return message;
+    }
 
-}
+    // ================================
+    // Submit
+    // ================================
+    form.addEventListener("submit", async (e) => {
 
-// =========================
-// Kirim Pesan
-// =========================
+        e.preventDefault();
 
-form.addEventListener("submit", async (e) => {
+        const userMessage = input.value.trim();
 
-    e.preventDefault();
+        if (!userMessage) return;
 
-    const text = input.value.trim();
+        createMessage("user", userMessage);
 
-    if (!text) return;
-
-    createMessage("user", text);
-
-    conversation.push({
-        role: "user",
-        text: text
-    });
-
-    input.value = "";
-
-    input.focus();
-
-    const loading = createLoading();
-
-    try {
-
-        const response = await fetch("/api/chat", {
-
-            method: "POST",
-
-            headers: {
-
-                "Content-Type": "application/json"
-
-            },
-
-            body: JSON.stringify({
-
-                conversation
-
-            })
-
+        conversation.push({
+            role: "user",
+            text: userMessage
         });
 
-        loading.remove();
+        input.value = "";
 
-        if (!response.ok) {
+        input.focus();
 
-            createMessage("bot", "❌ Server Error");
+        const loading = createLoading();
 
-            return;
+        try {
 
-        }
+            const response = await fetch("/api/chat", {
 
-        const data = await response.json();
+                method: "POST",
 
-        if (data.result) {
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-            createMessage("bot", data.result);
-
-            conversation.push({
-
-                role: "model",
-
-                text: data.result
+                body: JSON.stringify({
+                    conversation
+                })
 
             });
 
+            if (!response.ok) {
+
+                throw new Error("Server Error");
+
+            }
+
+            const data = await response.json();
+
+            loading.remove();
+
+            if (data.result) {
+
+                createMessage("bot", data.result);
+
+                conversation.push({
+
+                    role: "model",
+
+                    text: data.result
+
+                });
+
+            }
+
+            else {
+
+                createMessage(
+                    "bot",
+                    "Sorry, no response received."
+                );
+
+            }
+
         }
 
-        else {
+        catch (err) {
+
+            console.error(err);
+
+            loading.remove();
 
             createMessage(
 
                 "bot",
 
-                "Sorry, no response received."
+                "Failed to get response from server."
 
             );
 
         }
 
-    }
+    });
 
-    catch (err) {
+    // ================================
+    // New Chat
+    // ================================
+    newChatBtn.addEventListener("click", () => {
 
-        loading.remove();
+        conversation = [];
 
-        createMessage(
+        chatBox.innerHTML = `
 
-            "bot",
+        <div class="message bot">
 
-            "Failed to get response from server."
+            <div class="icon">🤖</div>
 
-        );
+            <div class="bubble">
 
-        console.error(err);
+                <h4>AI Assistant</h4>
 
-    }
+                <p>
 
-});
+                Hello 👋<br><br>
 
-// =========================
-// New Chat
-// =========================
+                I'm your AI assistant powered by Google Gemini.
 
-newChat.onclick = () => {
+                Ask me anything!
 
-    conversation = [];
-
-    chatBox.innerHTML = `
-
-        <div class="welcome">
-
-            <div class="welcome-icon">
-
-                🤖
+                </p>
 
             </div>
 
-            <h1>Hello 👋</h1>
-
-            <p>
-
-                I'm your AI Assistant.<br>
-
-                Ask me anything.
-
-            </p>
-
         </div>
 
-    `;
+        `;
 
-}
+    });
+
+});
