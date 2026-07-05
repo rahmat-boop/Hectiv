@@ -1,67 +1,213 @@
-const form = document.getElementById('chat-form');
-const input = document.getElementById('user-input');
-const chatBox = document.getElementById('chat-box');
+document.addEventListener("DOMContentLoaded", () => {
 
-let conversationHistory = [];
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("user-input");
+    const chatBox = document.getElementById("chat-box");
+    const newChatBtn = document.getElementById("new-chat");
 
-form.addEventListener('submit', async function (e) {
-  e.preventDefault();
+    let conversation = [];
 
-  const userMessage = input.value.trim();
-  if (!userMessage) return;
+    // ================================
+    // Scroll otomatis
+    // ================================
+    function scrollBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-  appendMessage('user', userMessage);
-  input.value = '';
+    // ================================
+    // Membuat Bubble Chat
+    // ================================
+    function createMessage(role, text) {
 
-  conversationHistory.push({ role: 'user', text: userMessage });
+        const message = document.createElement("div");
+        message.className = `message ${role}`;
 
-  const loadingId = appendMessage('bot', 'Gemini sedang berpikir...');
+        const icon = document.createElement("div");
+        icon.className = "icon";
 
-  try {
-    const response = await fetch('http://localhost:3000/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ conversation: conversationHistory })
+        icon.textContent = role === "user"
+            ? "👤"
+            : "🤖";
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        bubble.innerHTML = `
+            <h4>${role === "user" ? "You" : "AI Assistant"}</h4>
+            <p>${text}</p>
+        `;
+
+        message.appendChild(icon);
+        message.appendChild(bubble);
+
+        chatBox.appendChild(message);
+
+        scrollBottom();
+
+        return message;
+
+    }
+
+    // ================================
+    // Loading Animation
+    // ================================
+    function createLoading() {
+
+        const loading = document.createElement("div");
+        loading.className = "message bot";
+
+        loading.innerHTML = `
+            <div class="icon">🤖</div>
+
+            <div class="bubble">
+
+                <h4>AI Assistant</h4>
+
+                <div class="loading">
+
+                    <div></div>
+                    <div></div>
+                    <div></div>
+
+                </div>
+
+            </div>
+        `;
+
+        chatBox.appendChild(loading);
+
+        scrollBottom();
+
+        return loading;
+
+    }
+
+    // ================================
+    // Submit
+    // ================================
+    form.addEventListener("submit", async (e) => {
+
+        e.preventDefault();
+
+        const userMessage = input.value.trim();
+
+        if (!userMessage) return;
+
+        createMessage("user", userMessage);
+
+        conversation.push({
+            role: "user",
+            text: userMessage
+        });
+
+        input.value = "";
+
+        input.focus();
+
+        const loading = createLoading();
+
+        try {
+
+            const response = await fetch("/api/chat", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    conversation
+                })
+
+            });
+
+            if (!response.ok) {
+
+                throw new Error("Server Error");
+
+            }
+
+            const data = await response.json();
+
+            loading.remove();
+
+            if (data.result) {
+
+                createMessage("bot", data.result);
+
+                conversation.push({
+
+                    role: "model",
+
+                    text: data.result
+
+                });
+
+            }
+
+            else {
+
+                createMessage(
+                    "bot",
+                    "Sorry, no response received."
+                );
+
+            }
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            loading.remove();
+
+            createMessage(
+
+                "bot",
+
+                "Failed to get response from server."
+
+            );
+
+        }
+
     });
 
-    const data = await response.json();
+    // ================================
+    // New Chat
+    // ================================
+    newChatBtn.addEventListener("click", () => {
 
-    const loadingElement = document.getElementById(loadingId);
-    if (loadingElement) loadingElement.remove();
+        conversation = [];
 
+        chatBox.innerHTML = `
 
-    if (response.ok) {
-      appendMessage('bot', data.result);
-      conversationHistory.push({ role: 'model', text: data.result });
-    } else {
-      appendMessage('bot', `Error: ${data.error || 'Gagal mendapatkan respons.'}`);
-    }
-  } catch (error) {
-    console.error(error);
-    const loadingElement = document.getElementById(loadingId);
-    if (loadingElement) loadingElement.remove();
-    appendMessage('bot', 'Terjadi kesalahan koneksi ke server.');
-  }
-}); 
+        <div class="message bot">
 
+            <div class="icon">🤖</div>
 
-function formatMarkdown(text) {
-  return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-}
+            <div class="bubble">
 
-function appendMessage(sender, text) {
-  const msg = document.createElement('div');
-  const uniqueId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
-  
-  msg.id = uniqueId;
-  msg.classList.add('message', sender);
-  
-  msg.innerHTML = formatMarkdown(text);
-  
-  chatBox.appendChild(msg);
-  chatBox.scrollTop = chatBox.scrollHeight;
-  
-  return uniqueId;
-}
+                <h4>AI Assistant</h4>
+
+                <p>
+
+                Hello 👋<br><br>
+
+                I'm your AI assistant powered by Google Gemini.
+
+                Ask me anything!
+
+                </p>
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+});

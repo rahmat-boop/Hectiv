@@ -1,20 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gemini AI Chatbot</title>
-  <link rel="stylesheet" href="style.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Remix Icon -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <div class="container">
-    <h1>Gemini AI Chatbot</h1>
-    <div id="chat-box" class="chat-box"></div>
-    <form id="chat-form">
-      <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" required />
-      <button type="submit">Send</button>
-    </form>
-  </div>
-  <script src="script.js"></script>
+
+<div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <i class="ri-robot-2-fill"></i>
+            <span>AI Assistant</span>
+        </div>
+
+        <button class="new-chat" id="new-chat">
+            <i class="ri-add-line"></i>
+            New Chat
+        </button>
+
+        <div class="history">
+
+            <div class="history-title">
+                Recent Chats
+            </div>
+
+            <div class="history-item">
+                <i class="ri-chat-3-line"></i>
+                Welcome Chat
+            </div>
+
+        </div>
+
+        <div class="sidebar-footer">
+
+            <div class="profile">
+
+                <div class="avatar">
+                    👤
+                </div>
+
+                <div class="profile-info">
+                    <h4>You</h4>
+                    <p>Online</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+    <!-- Main Chat -->
+    <main class="main">
+
+        <!-- Header -->
+        <header class="topbar">
+
+            <div>
+                <h2>🤖 AI Assistant</h2>
+                <p>Powered by Google Gemini</p>
+            </div>
+
+            <div class="status">
+                <span class="dot"></span>
+                Online
+            </div>
+
+        </header>
+
+        <!-- Chat -->
+        <div id="chat-box" class="chat-box">
+
+            <!-- Welcome Message -->
+            <div class="message bot">
+
+                <div class="icon">
+                    🤖
+                </div>
+
+                <div class="bubble">
+                    <h4>AI Assistant</h4>
+                    <p>
+                        Hello 👋<br><br>
+                        I'm your AI assistant powered by Google Gemini.
+                        Ask me anything!
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Input -->
+        <form id="chat-form" class="chat-form">
+
+            <div class="input-wrapper">
+
+                <input
+                    type="text"
+                    id="user-input"
+                    placeholder="Message AI Assistant..."
+                    autocomplete="off"
+                    required
+                >
+
+                <button type="submit">
+                    <i class="ri-send-plane-fill"></i>
+                </button>
+
+            </div>
+
+        </form>
+
+    </main>
+
+</div>
+
+<!-- JavaScript -->
+<script src="script.js"></script>
+
 </body>
 </html>
